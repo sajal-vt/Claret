@@ -95,10 +95,14 @@ int main(int argc, char** argv)
 	int num_of_points = 1024; 
 	int n_original_dims = 10;
 	int n_projection_dims = 2;
-    int select_file = atoi(argv[1]);
+    float* highD;
+    highD = loadCSV(argv[1], num_of_points, n_original_dims);
+    //int select_file = atoi(argv[1]);
+    
     int test_size = atoi(argv[2]);
     record_stress = atoi(argv[3]);   
-    float* highD;
+    
+    /*
      switch(select_file) {
           case 0:
                highD = loadCSV("../data/breast-cancer-wisconsin.csv",
@@ -128,6 +132,7 @@ int main(int argc, char** argv)
                printf("-ERROR- PROVIDE CORRECT FILE\n");
                exit(1);
       }
+      */
 //	float* highD = loadCSV("breast-cancer-wisconsin.csv", num_of_points, n_original_dims);
 	
 //	float* highD = loadCSV("shuttle_trn_corr.csv", num_of_points, n_original_dims);
