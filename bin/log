@@ -1,0 +1,36 @@
+number of data points 14092 and 100-INFO- Using 100 topics 
+data size: 14090X100
+IN 14090--100
+OUT
+here
+number of platforms: 2
+Platform[1] Name: AMD Accelerated Parallel Processing
+Platform[2] Name: NVIDIA CUDA
+Running forward MDS on GPU 
+num of devices: 2
+first device name: Tesla K80
+second device name: Tesla K80
+assigning device buffers 
+Initial number of groups: 111
+h[0]=14090
+h[1]=1761
+h[2]=220
+Relaxing 220 and 0
+number of groups : 2
+Stopping at iteration with stress : 142, 0.678478
+Interpolating 1761 and 220
+number of groups : 14
+Stopping at iteration with stress : 52, 0.380026
+Relaxing 1761 and 0
+number of groups : 14
+Stopping at iteration with stress : 135, 0.368361
+Interpolating 14090 and 1761
+number of groups : 111
+Stopping at iteration with stress : 52, 0.666443
+Relaxing 14090 and 0
+number of groups : 111
+Stopping at iteration with stress : 400, 0.657269
+done 
+elapsed time: 3
+elapsed time: 3764.09 ms 
+Matrix multiplication completed...
