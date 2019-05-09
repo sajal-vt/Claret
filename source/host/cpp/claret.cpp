@@ -290,8 +290,8 @@ int main(int argc, char** argv)
 
 	// Create the compute program from the source buffer
 	size_t sourceFileSize;
-	//char kernel_file[] = "glimmer_kernel.cl";
-	char kernel_file[] = "../source/device/glimmer_kernel.cl";
+	//char kernel_file[] = "claret__kernel.cl";
+	char kernel_file[] = "../source/device/claret_kernel.cl";
     char *cSourceCL = loadSource(kernel_file, &sourceFileSize);
 	program = clCreateProgramWithSource(context, 1, (const char **) & cSourceCL, &sourceFileSize, &err);
 
