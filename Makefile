@@ -2,21 +2,18 @@ GCC=g++
 F:=1
 N:=0
 S:=0
-INCLUDE=/usr/local/cuda-7.5/include
+INCLUDE=/usr/local/cuda-9.0/include
 
-all: bin/glimmer
+all: bin/claret
 
-bin/glimmer: bin/glimmer.o
-	$(GCC) -I ./bin -I $(INCLUDE) -lOpenCL bin/glimmer.o -o $@ -lm
+bin/claret: bin/claret.o
+	$(GCC) -I ./bin -I $(INCLUDE) -lOpenCL bin/claret.o -o $@ -lm
 
-bin/glimmer.o: source/host/cpp/glimmer_host.cpp
-	$(GCC) -I  ./bin -I $(INCLUDE) -c source/host/cpp/glimmer_host.cpp -o bin/glimmer.o
-
-run: bin/glimmer
-	cd ./bin ; rm -vf *.out log *.csv; ./glimmer $(F) $(N) $(S) | tee log; cd -
+bin/claret.o: source/host/cpp/claret.cpp
+	$(GCC) -I  ./bin -I $(INCLUDE) -c source/host/cpp/claret.cpp -o bin/claret.o
 
 clean:
-	rm -f bin/*.o bin/*.mod bin/glimmer
+	rm -f bin/*.o bin/*.mod bin/claret
 
 .PHONY:
 	run clean
