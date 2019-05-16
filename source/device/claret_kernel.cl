@@ -27,7 +27,7 @@ __kernel void compute_force(
 	const float damping = 0.3f;
 	const float delta_time = 0.3f;
 	const float freeness = 0.85f;
-    __private float force_l[] = {0.f, 0.f};
+  __private float force_l[] = {0.f, 0.f};
 
 	float size_factor = (1.f / ((float)(near_set_size + random_set_size)));
 	int mod_op = start_index;
@@ -45,6 +45,8 @@ __kernel void compute_force(
 		my_pivot_indices[i] = pivot_indices[gid_pivot + i];
 	}
     
+    
+
 	__private float pivot_distances_high[8];
 	__private float pivot_distances_low[8];
 	__private float dir_vector[2];
