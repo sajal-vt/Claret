@@ -3,6 +3,198 @@ void swap (__private float* a,__private float* b );
 int partition (__private float array[],__private float array1[], int l, int h);
 void quickSortIterative (__private float array[], __private float array1[], int l, int h);
 
+__kernel void compute_weighted_force(
+  __global float* highD, 
+  __global float* weights, // n_original_dims dimensional
+  __global float* lowD_a,
+    __global float* lowD_b,
+  __global float* velocity_a,
+    __global float* velocity_b,
+  __global float* force, 
+  __global int* seed_memory,
+  __global unsigned int* pivot_indices, 
+  const int start_index,
+  const int end_index,
+  const int n_original_dims,
+  const int n_projection_dims,
+  const int near_set_size,
+  const int random_set_size,
+    __global float* hd_distances,
+  __global float* metadata,
+    const int iteration
+    ) 
+{ 
+  const float spring_force = 0.7f;
+  const float damping = 0.3f;
+  const float delta_time = 0.3f;
+  const float freeness = 0.85f;
+  __private float force_l[] = {0.f, 0.f};
+
+  float size_factor = (1.f / ((float)(near_set_size + random_set_size)));
+  int mod_op = start_index;
+  if(start_index == 0)mod_op = end_index;
+  
+  int gid = get_global_id(0) + start_index;
+  if(gid >= end_index)return;
+  __private unsigned int my_pivot_indices[8];
+  int pivot_size = near_set_size + random_set_size;
+
+    int gid_pivot = gid * pivot_size;
+
+  for(int i = 0; i < near_set_size; i++)
+  {
+    my_pivot_indices[i] = pivot_indices[gid_pivot + i];
+  }
+    
+    
+
+  __private float pivot_distances_high[8];
+  __private float pivot_distances_low[8];
+  __private float dir_vector[2];
+  __private float rel_velocity[2];
+
+
+    __private int seed = ((gid + iteration) * 123);
+    __private rand_index = rand(&seed) % mod_op;
+
+    my_pivot_indices[near_set_size] = rand_index;
+    for(int j = 1; j <= 3; j++ )
+    {
+        my_pivot_indices[near_set_size + j] = (rand_index + j) % mod_op;             
+    }
+    
+
+  for(int i = 0; i < pivot_size; i++)
+  {
+    __private float hi = 0.f;
+    for( int k = 0; k < n_original_dims; k++ ) {
+
+      __private float norm = highD[gid * n_original_dims + k] - highD[my_pivot_indices[i] * n_original_dims + k];
+      hi += (weights[k] * norm * norm);
+    }
+    pivot_distances_high[i] = sqrt((float)hi);
+  }
+
+  quickSortIterative( my_pivot_indices, pivot_distances_high, 0, pivot_size - 1);
+
+
+  // mark duplicates with 1000
+  for(int i = 1; i < pivot_size; i++) {
+    if(my_pivot_indices[i] == my_pivot_indices[i - 1]) {
+      pivot_distances_high[i] = 1000.f;
+    }
+  }
+
+  // sort pivot_distances and pivot_indices
+  quickSortIterative( pivot_distances_high, my_pivot_indices, 0, pivot_size - 1);
+
+  for(int i = 0; i < pivot_size; i++)
+  {
+    hd_distances[gid * pivot_size + i] = pivot_distances_high[i];
+  }
+  // Move the point
+  __private int gid_proj_dims = gid * n_projection_dims;
+  for(int i = 0; i < pivot_size; i++) {
+    int idx = my_pivot_indices[i];
+        int idx_proj_dims = idx * n_projection_dims;
+  float norm = 0.f;
+    for(int k = 0; k < n_projection_dims; k++) {
+            if(iteration % 2 == 0) {
+          dir_vector[k] = lowD_a[idx_proj_dims + k] - lowD_a[gid_proj_dims + k];
+            } else{
+                dir_vector[k] = lowD_b[idx_proj_dims + k] - lowD_b[gid_proj_dims + k];
+
+            }
+            
+            norm += dir_vector[k] * dir_vector[k];
+    }
+      float norm_prev = norm; 
+    norm = sqrt(norm);
+
+    pivot_distances_low[i] = norm;
+
+    if(norm > 1.e-6 && pivot_distances_high[i] != 1000.f)
+    {
+      for(int k = 0; k < n_projection_dims; k++) {
+        dir_vector[k] /= norm;
+      }
+    
+  
+      // relative velocity
+      for(int k = 0; k < n_projection_dims; k++) {
+              if(iteration % 2 == 0) {
+                    rel_velocity[k] = velocity_a[idx_proj_dims + k] - velocity_a[gid_proj_dims + k];
+            
+            } else {
+                     rel_velocity[k] = velocity_b[idx_proj_dims + k] - velocity_b[gid_proj_dims + k]; 
+                }
+
+            }
+
+      // calculate difference
+      float delta_distance = (pivot_distances_low[i] - pivot_distances_high[i]) * spring_force;
+      // compute damping value
+      norm = 0.f;
+      for(int k = 0; k < n_projection_dims; k++) {
+        norm += dir_vector[k] * rel_velocity[k];
+      }
+      delta_distance += norm * damping;
+      
+      // accumulate the force
+      for(int k = 0; k < n_projection_dims; k++) {
+              force_l[k] += dir_vector[k] * delta_distance;
+      }
+    } 
+  }
+
+  // scale the force_l by size factor
+  for(int k = 0; k < n_projection_dims; k++) {
+    //force[gid_proj_dims + k] *= size_factor;
+    force_l[k] *= size_factor;
+  }
+
+  for(int i = 0; i < pivot_size; i++)
+  {
+    pivot_indices[gid_pivot + i] = my_pivot_indices[i];
+  }
+
+   // update new velocity
+    // v = v0 + at
+    __private float v, v0;    
+    for(int k = 0; k < n_projection_dims; k++) {
+        
+        if(iteration % 2 == 0) {
+            v0 = velocity_a[gid_proj_dims + k];
+        } else {
+            v0 = velocity_b[gid_proj_dims + k];
+        }
+
+        v = v0 + force_l[k] * delta_time;
+      // if(isnan(force_l[k]))metadata[30] = gid;
+   //v = v0 + force[gid_proj_dims + k] * delta_time;
+        v *= freeness;
+        if(iteration % 2 == 0) {
+            velocity_b[gid_proj_dims + k] = max(min(v, 2.f), -2.f);
+       
+        } else {
+            velocity_a[gid_proj_dims + k] = max(min(v, 2.f), -2.f);
+        }
+    }
+    
+     // update new positions
+     // x = x0 + vt
+     for(int k = 0; k < n_projection_dims; k++) {
+        if(iteration % 2 == 0) {
+             lowD_b[gid_proj_dims + k] = lowD_a[gid_proj_dims + k] + velocity_b[gid_proj_dims + k] * delta_time;
+        } else {
+             lowD_a[gid_proj_dims + k] = lowD_b[gid_proj_dims + k] + velocity_a[gid_proj_dims + k] * delta_time;
+
+             }
+        
+     }   
+}
+
+
 __kernel void compute_force(
 	__global float* highD, 
 	__global float* lowD_a,
@@ -53,7 +245,7 @@ __kernel void compute_force(
 	__private float rel_velocity[2];
 
     /* revert back
-    for(int i = near_set_size; i < pivot_size; i++)
+  for(int i = near_set_size; i < pivot_size; i++)
 	{
 		seed = seed + i;
 		my_pivot_indices[i] = rand(&seed) % mod_op; 

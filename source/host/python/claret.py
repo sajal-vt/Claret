@@ -1182,3 +1182,15 @@ def fill_level_count( input, h ):
 		return levels;
 	return fill_level_count( input / 8, h );
 }
+
+
+def fill_level_count(num_of_points):
+	levels = 0
+	h = np.array([])
+	size = num_of_points
+	h.append(size)
+	while size > 1000:
+		size = math.floor(size / 8)
+		h.append(size)
+		levels += 1
+	return levels, h
