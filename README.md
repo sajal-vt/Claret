@@ -21,3 +21,15 @@ g++ -L /usr/local/cuda-9.0/lib64/ ../source/host/cpp/WMDS.cpp -lOpenCL -o wmds
 No separate building is required
 ```
 
+## Using Python distributable package named claret
+We have included a python distributable package named claret in the dist directory of the project. We will add a C++ distributable in a future commit.
+To use wmds from claret in your program:
+1. Put dist/claret folder in the same directory as your program
+2. Import wmds from claret
+```
+from claret import wmds
+```
+3. Call reduce method from wmds. Pass 2D data array, weigths and 2 as the projected dimension
+```
+wmds.reduce(data, weights, 2)
+```
