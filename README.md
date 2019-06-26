@@ -1,5 +1,5 @@
 # Claret : A Portable Parallel MDS Tool
-CLARET is our fast and portable parallel WMDS tool that combines algorithmic concepts adapted and extended from the stochastic force-based MDS (SF-MDS) and Glimmer. To further improve Claret's performance for real-time data analysis, we propose a preprocessing step that computes approximate weighted Euclidean distances by combining a novel data mapping called stretching and Johnson Lindestrauss' lemma in O(log d) time in place of the original O(d) time. This preprocessing step reduces the complexity of WMDS from O(f(n)d) to O(f(n) log d), which for large d is a significant computational gain.
+Claret is our fast and portable parallel WMDS tool that combines algorithmic concepts adapted and extended from the stochastic force-based MDS (SF-MDS) and Glimmer. To further improve Claret's performance for real-time data analysis, we propose a preprocessing step that computes approximate weighted Euclidean distances by combining a novel data mapping called stretching and Johnson Lindestrauss' lemma in O(log d) time in place of the original O(d) time. This preprocessing step reduces the complexity of WMDS from O(f(n)d) to O(f(n) log d), which for large d is a significant computational gain.
 
 ## Requirement
 1. OpenCL for CPU ([Installation Instruction](https://software.intel.com/en-us/articles/opencl-drivers))
